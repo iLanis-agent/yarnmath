@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>YarnMath - honest yarn math</title>
+<style>
+  :root { --bg:#181218; --card:#221a22; --ink:#f5eef5; --dim:#b9a4b9; --acc:#d088c0; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.5 -apple-system, "Segoe UI", Roboto, sans-serif; }
+  header { padding:28px 24px 8px; max-width:980px; margin:0 auto; display:flex; justify-content:space-between; align-items:baseline; }
+  h1 { margin:0; font-size:28px; }
+  h1 span { color:var(--acc); }
+  nav a { color:var(--dim); text-decoration:none; font-size:14px; }
+  main { max-width:980px; margin:0 auto; padding:16px 24px 60px; display:grid; gap:18px; }
+  .card { background:var(--card); border-radius:14px; padding:20px; }
+  .card h2 { margin:0 0 12px; font-size:13px; letter-spacing:1.5px; color:var(--dim); text-transform:uppercase; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px; }
+  label { display:block; font-size:13px; color:var(--dim); margin-bottom:4px; }
+  input, select { width:100%; background:#1b151b; border:1px solid #4e3d4e; color:var(--ink); border-radius:8px; padding:9px 10px; font-size:15px; }
+  .hint { font-size:12.5px; color:var(--dim); margin-top:10px; }
+  button { cursor:pointer; border:0; border-radius:9px; padding:11px 16px; font-size:15px; background:var(--acc); color:#33122a; font-weight:600; }
+  button.ghost { background:#43303f; color:var(--ink); font-weight:500; }
+  .row { display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; }
+  .verdict { font-size:17px; line-height:1.65; }
+  .verdict b { color:var(--acc); }
+  .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; margin-top:16px; }
+  .stat { background:#1b151b; border-radius:10px; padding:12px; }
+  .stat .v { font-size:19px; font-weight:700; color:var(--acc); }
+  .stat .k { font-size:12px; color:var(--dim); margin-top:2px; }
+  .warn { background:#33202e; border:1px solid #6e4560; border-radius:10px; padding:12px 14px; margin-top:14px; font-size:14px; color:#f0d3e6; }
+  table.bd { width:100%; border-collapse:collapse; margin-top:6px; font-size:14.5px; }
+  table.bd td { padding:7px 4px; border-bottom:1px solid #372b37; }
+  table.bd td:last-child { text-align:right; color:var(--acc); font-weight:600; }
+  .fine { font-size:12.5px; color:var(--dim); margin-top:8px; }
+  a { color:var(--acc); }
+</style>
+</head>
+<body>
+<header>
+  <h1>Yarn<span>Math</span></h1>
+  <nav><a href="index.html">about</a></nav>
+</header>
+<main>
+  <section class="card">
+    <h2>Your swatch</h2>
+    <div class="grid">
+      <div>
+        <label for="st">Stitches in 4 in</label>
+        <input id="st" type="number" min="4" max="60" step="0.5" value="22">
+      </div>
+      <div>
+        <label for="rows">Rows in 4 in</label>
+        <input id="rows" type="number" min="4" max="80" step="0.5" value="30">
+      </div>
+      <div>
+        <label for="swg">Swatch weight (g)</label>
+        <input id="swg" type="number" min="1" max="200" step="0.5" value="18">
+      </div>
+      <div>
+        <label for="swa">Swatch area (sq in)</label>
+        <input id="swa" type="number" min="4" max="100" step="0.5" value="16">
+      </div>
+    </div>
+    <div class="hint">Block the swatch first - an unblocked swatch lies by 10% or more, and it lies exactly where you cannot afford it. Weigh it on a kitchen scale, measure it with a ruler, and these numbers become yours instead of the label's.</div>
+  </section>
+
+  <section class="card">
+    <h2>The project</h2>
+    <div class="grid">
+      <div>
+        <label for="width">Target width (in)</label>
+        <input id="width" type="number" min="1" max="120" step="0.5" value="50">
+      </div>
+      <div>
+        <label for="length">Target length (in)</label>
+        <input id="length" type="number" min="1" max="120" step="0.5" value="60">
+      </div>
+      <div>
+        <label for="mult">Stitch multiple</label>
+        <input id="mult" type="number" min="0" max="24" step="1" value="6">
+      </div>
+      <div>
+        <label for="add">Plus stitches</label>
+        <input id="add" type="number" min="0" max="24" step="1" value="2">
+      </div>
+    </div>
+    <div class="row" id="presets"></div>
+  </section>
+
+  <section class="card">
+    <h2>Your numbers</h2>
+    <div class="verdict" id="verdict"></div>
+    <div class="stats" id="stats"></div>
+  </section>
+
+  <section class="card">
+    <h2>The yarn to buy</h2>
+    <div class="grid">
+      <div>
+        <label for="skg">Skein weight (g)</label>
+        <input id="skg" type="number" min="10" max="1000" step="5" value="100">
+      </div>
+      <div>
+        <label for="sky">Skein yardage (yds)</label>
+        <input id="sky" type="number" min="20" max="2000" step="5" value="220">
+      </div>
+      <div>
+        <label for="buf">Buffer (%)</label>
+        <input id="buf" type="number" min="0" max="30" step="1" value="10">
+      </div>
+    </div>
+    <div class="stats" id="buyStats"></div>
+    <div class="warn" id="dyeWarn">Buy every skein in one dye lot, at one time. The buffer is not pessimism - running out at 90% and re-ordering is how a blanket gets a permanent stripe of "close enough."</div>
+  </section>
+
+  <section class="card">
+    <h2>The honest part</h2>
+    <div class="verdict" style="font-size:15px">
+      "Skeins per size" charts assume the label gauge, the designer's tension, and average luck. YarnMath uses your blocked swatch instead: grams scale by area, stitches scale by your gauge, and the cast-on snaps to your stitch pattern - then shows the width you will actually get, because 278 stitches at your gauge is 50.55 inches, not 50.
+    </div>
+  </section>
+</main>
+<script src="engine.js"></script>
+<script>
+(function () {
+  var PRESETS = [
+    ['Throw blanket 50x60', 50, 60, 6, 2],
+    ['Scarf 8x70', 8, 70, 4, 0],
+    ['Baby blanket 36x36', 36, 36, 6, 2],
+    ['Dishcloth 9x9', 9, 9, 4, 1]
+  ];
+  var pw = document.getElementById('presets');
+  PRESETS.forEach(function (p) {
+    var b = document.createElement('button');
+    b.className = 'ghost'; b.textContent = p[0];
+    b.addEventListener('click', function () {
+      document.getElementById('width').value = p[1];
+      document.getElementById('length').value = p[2];
+      document.getElementById('mult').value = p[3];
+      document.getElementById('add').value = p[4];
+      render();
+    });
+    pw.appendChild(b);
+  });
+  function stat(v, k) { return '<div class="stat"><div class="v">' + v + '</div><div class="k">' + k + '</div></div>'; }
+  function num(id) { return Number(document.getElementById(id).value) || 0; }
+  function render() {
+    var st = num('st'), rows = num('rows'), swg = num('swg'), swa = num('swa');
+    var W = num('width'), L = num('length'), mult = num('mult'), add = num('add');
+    if (st <= 0 || rows <= 0 || W <= 0 || L <= 0) return;
+    var co = YarnEngine.castOn(W, st, mult, add);
+    var rw = YarnEngine.rowsFor(L, rows);
+    var actW = YarnEngine.actualWidth(co, st);
+    var actL = YarnEngine.actualLength(rw, rows);
+    document.getElementById('verdict').innerHTML =
+      'Cast on <b>' + co + ' stitches</b>' + (mult > 0 ? ' (' + mult + 'n' + (add > 0 ? '+' + add : '') + ')' : '') +
+      ' and work <b>' + rw + ' rows</b>. At your gauge that comes out <b>' + actW + ' x ' + actL + ' in</b>' +
+      (Math.abs(actW - W) > 0.05 ? ' - not ' + W + ', because the stitch pattern snapped the count' : '') + '.';
+    document.getElementById('stats').innerHTML =
+      stat(co + ' sts', 'cast on') +
+      stat(rw + ' rows', 'to work') +
+      stat(YarnEngine.r2(YarnEngine.stPerIn(st)) + ' st/in', 'your gauge') +
+      stat(actW + ' in', 'actual width');
+    var grams = 0, yds = 0, sk = 0;
+    if (swg > 0 && swa > 0) {
+      grams = YarnEngine.gramsForArea(W * L, swg, swa);
+      var skg = num('skg'), sky = num('sky'), buf = num('buf');
+      if (skg > 0) {
+        sk = YarnEngine.skeinsNeeded(grams, skg, buf);
+        if (sky > 0) yds = YarnEngine.yardsForGrams(grams, sky, skg);
+      }
+    }
+    document.getElementById('buyStats').innerHTML =
+      stat(YarnEngine.r2(grams) + ' g', 'yarn needed') +
+      (yds > 0 ? stat(YarnEngine.r2(yds) + ' yds', 'yardage') : '') +
+      (sk > 0 ? stat(sk, 'skeins to buy') : '');
+  }
+  ['st', 'rows', 'swg', 'swa', 'width', 'length', 'mult', 'add', 'skg', 'sky', 'buf'].forEach(function (id) {
+    document.getElementById(id).addEventListener('input', render);
+  });
+  render();
+})();
+</script>
+</body>
+</html>
